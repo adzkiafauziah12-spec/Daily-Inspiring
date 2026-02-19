@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Inspiring - Pastel Pink Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Quicksand', sans-serif;
+            background-color: #FFF5F7; /* Pastel Pink Very Light */
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 192, 203, 0.3);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .pink-gradient {
+            background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+        }
+        .btn-pastel {
+            background: #FFC0CB;
+            color: #D81B60;
+            transition: all 0.3s ease;
+        }
+        .btn-pastel:hover {
+            background: #FFB1BF;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        function App() {
+            const [products, setProducts] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Semua');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [showModal, setShowModal] = useState(false);
+            const [showLogin, setShowLogin] = useState(false);
+            const [password, setPassword] = useState('');
+            const [formData, setFormData] = useState({ title: '', price: '', category: 'Beauty', imageUrl: '', affiliateLink: '' });
+
+            const categories = ["Semua", "Beauty", "Fashion", "Lifestyle", "Skincare", "Decor", "Lainnya"];
+            const ADMIN_PASS = "pinkadmin"; // Ganti password Anda di sini
+
+            useEffect(() => {
+                const saved = localStorage.getItem('daily_inspiring_pastel');
+                if (saved) setProducts(JSON.parse(saved));
+                setTimeout(() => lucide.createIcons(), 500);
+            }, []);
+
+            useEffect(() => { lucide.createIcons(); }, [isAdmin, products, showModal, showLogin, selectedCategory]);
+
+            const saveToLocal = (newProducts) => {
+                setProducts(newProducts);
+                localStorage.setItem('daily_inspiring_pastel', JSON.stringify(newProducts));
+            };
+
+            const filteredProducts = useMemo(() => {
+                return products.filter(p => {
+                    const title = p.title || "";
+                    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesCategory = selectedCategory === 'Semua' || p.category === selectedCategory;
+                    return matchesSearch && matchesCategory;
+                });
+            }, [products, searchTerm, selectedCategory]);
+
+            const handleAdd = (e) => {
+                e.preventDefault();
+                const newProduct = { ...formData, id: Date.now() };
+                saveToLocal([newProduct, ...products]);
+                setShowModal(false);
+                setFormData({ title: '', price: '', category: 'Beauty', imageUrl: '', affiliateLink: '' });
+            };
+
+            const handleDelete = (id) => {
+                if(confirm("Hapus item cantik ini?")) {
+                    saveToLocal(products.filter(p => p.id !== id));
+                }
+            };
+
+            return (
+                <div className="min-h-screen">
+                    {/* Header Estetik */}
+                    <nav className="sticky top-0 z-40 bg-white/60 backdrop-blur-md border-b border-pink-100 px-6 h-16 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 bg-[#FFC0CB] rounded-full flex items-center justify-center shadow-inner">
+                                <i data-lucide="heart" className="text-white w-5 h-5 fill-current"></i>
+                            </div>
+                            <span className="font-bold text-lg text-[#D81B60] tracking-tight">Daily Inspiring</span>
+                        </div>
+                        <button 
+                            onClick={() => isAdmin ? setShowModal(true) : setShowLogin(true)}
+                            className={`p-2 rounded-full transition-all ${isAdmin ? 'bg-pink-400 text-white' : 'text-pink-300 hover:bg-pink-50'}`}
+                        >
+                            <i data-lucide={isAdmin ? "plus" : "user-check"} className="w-5 h-5"></i>
+                        </button>
+                    </nav>
+
+                    <main className="max-w-4xl mx-auto px-4 py-10">
+                        {/* Hero Section */}
+                        <div className="text-center mb-12">
+                            <h1 className="text-4xl font-extrabold text-[#D81B60] mb-3">Soft Girl Era ✨</h1>
+                            <p className="text-pink-400 font-medium">Katalog barang-barang lucu dan estetik pilihanmu.</p>
+                            
+                            <div className="mt-8 relative max-w-md mx-auto">
+                                <i data-lucide="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-300 w-4 h-4"></i>
+                                <input 
+                                    className="w-full pl-10 pr-4 py-3 bg-white/80 border border-pink-100 rounded-2xl outline-none focus:ring-4 focus:ring-pink-100 transition-all text-pink-600 placeholder-pink-200 shadow-sm"
+                                    placeholder="Cari barang estetik..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Filter Kategori */}
+                        <div className="flex gap-2 overflow-x-auto pb-6 no-scrollbar justify-start sm:justify-center">
+                            {categories.map(cat => (
+                                <button 
+                                    key={cat} 
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-5 py-2 rounded-full text-xs font-bold transition-all border ${selectedCategory === cat ? 'bg-[#D81B60] text-white border-[#D81B60] shadow-md' : 'bg-white text-pink-400 border-pink-50 hover:border-pink-200'}`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Grid Produk */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
+                            {filteredProducts.map(p => (
+                                <div key={p.id} className="glass-card rounded-[2rem] overflow-hidden shadow-sm flex flex-col group hover:shadow-pink-100 hover:shadow-xl transition-all duration-500">
+                                    <div className="relative aspect-square overflow-hidden bg-pink-50">
+                                        <img src={p.imageUrl || 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=400'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                        <div className="absolute top-2 left-2">
+                                            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[9px] font-bold text-pink-500 shadow-sm">#{p.category}</span>
+                                        </div>
+                                        {isAdmin && (
+                                            <button onClick={() => handleDelete(p.id)} className="absolute top-2 right-2 p-1.5 bg-red-400/80 text-white rounded-full backdrop-blur-sm">
+                                                <i data-lucide="x" className="w-3 h-3"></i>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="p-4 flex flex-col flex-grow text-center">
+                                        <h3 className="font-bold text-[#D81B60] text-xs line-clamp-2 mb-2">{p.title}</h3>
+                                        <p className="text-pink-400 font-bold text-sm mb-4">Rp {Number(p.price).toLocaleString('id-ID')}</p>
+                                        <a href={p.affiliateLink} target="_blank" className="btn-pastel w-full py-2.5 rounded-xl font-bold text-[10px] shadow-sm">
+                                            Checkout ✨
+                                        </a>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {filteredProducts.length === 0 && (
+                            <div className="text-center py-24">
+                                <div className="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="shopping-bag" className="text-pink-300 w-8 h-8"></i>
+                                </div>
+                                <p className="text-pink-300 font-bold italic">Belum ada barang lucu di sini...</p>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="py-12 text-center">
+                        <div className="flex justify-center gap-1 text-pink-200 mb-2">
+                            <i data-lucide="star" className="w-3 h-3 fill-current"></i>
+                            <i data-lucide="star" className="w-3 h-3 fill-current"></i>
+                            <i data-lucide="star" className="w-3 h-3 fill-current"></i>
+                        </div>
+                        <p className="text-pink-300 text-[10px] font-bold tracking-widest uppercase">Created for Daily Inspiring</p>
+                    </footer>
+
+                    {/* Modal Login Admin */}
+                    {showLogin && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pink-100/60 backdrop-blur-sm">
+                            <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 shadow-2xl border border-pink-50">
+                                <h2 className="font-bold text-[#D81B60] text-center mb-6">Admin Login</h2>
+                                <input 
+                                    type="password" 
+                                    placeholder="Password" 
+                                    className="w-full p-4 bg-pink-50 rounded-2xl outline-none border border-transparent focus:border-pink-300 text-pink-600 placeholder-pink-200"
+                                    onChange={e => setPassword(e.target.value)} 
+                                />
+                                <button onClick={() => { if(password === ADMIN_PASS) {setIsAdmin(true); setShowLogin(false);} else alert("Gagal, coba lagi ya!"); }} className="w-full bg-[#D81B60] text-white py-4 rounded-2xl font-bold shadow-lg shadow-pink-200 mt-4">Buka Akses</button>
+                                <button onClick={() => setShowLogin(false)} className="w-full text-pink-300 mt-4 text-xs font-bold">Kembali</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Tambah Produk */}
+                    {showModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-pink-100/60 backdrop-blur-md">
+                            <div className="bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+                                <h2 className="text-xl font-bold text-[#D81B60] mb-6 flex items-center gap-2">
+                                    <i data-lucide="sparkles" className="w-5 h-5"></i> Tambah Item Baru
+                                </h2>
+                                <form onSubmit={handleAdd} className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-pink-300 ml-2">Nama Produk</label>
+                                        <input required className="w-full p-4 bg-pink-50/50 rounded-2xl outline-none border border-pink-50 focus:border-pink-200 text-pink-700" onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Contoh: Lampu Tidur Awan" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-pink-300 ml-2">Harga (Angka)</label>
+                                            <input type="number" required className="w-full p-4 bg-pink-50/50 rounded-2xl outline-none border border-pink-50 focus:border-pink-200 text-pink-700" onChange={e => setFormData({...formData, price: e.target.value})} placeholder="75000" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-pink-300 ml-2">Kategori</label>
+                                            <select className="w-full p-4 bg-pink-50/50 rounded-2xl outline-none border border-pink-50 text-pink-700 font-bold" onChange={e => setFormData({...formData, category: e.target.value})}>
+                                                {categories.filter(c => c !== 'Semua').map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-pink-300 ml-2">URL Foto (Opsional)</label>
+                                        <input className="w-full p-4 bg-pink-50/50 rounded-2xl outline-none border border-pink-50 focus:border-pink-200 text-pink-700" onChange={e => setFormData({...formData, imageUrl: e.target.value})} placeholder="Tempel link foto..." />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-pink-300 ml-2">Link Produk / Shopee</label>
+                                        <input required className="w-full p-4 bg-pink-50/50 rounded-2xl outline-none border border-pink-50 focus:border-pink-200 text-pink-700" onChange={e => setFormData({...formData, affiliateLink: e.target.value})} placeholder="https://shope.ee/..." />
+                                    </div>
+                                    <button className="w-full bg-[#D81B60] text-white py-5 rounded-[2rem] font-bold shadow-xl shadow-pink-100 mt-4">Terbitkan Sekarang ✨</button>
+                                    <button type="button" onClick={() => setShowModal(false)} className="w-full text-pink-300 text-xs font-bold mt-2">Nanti Saja</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
