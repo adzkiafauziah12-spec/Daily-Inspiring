@@ -4,117 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Daily Inspiring - Cloud Katalog</title>
+    <!-- Menggunakan versi Tailwind Standalone untuk stabilitas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #fdf2f8;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
+            background-color: #fff5f7;
+            -webkit-tap-highlight-color: transparent;
         }
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 10000; /* Angka sangat tinggi agar di depan */
+            background: rgba(0,0,0,0.8);
+            z-index: 99999;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
         }
-        .modal.active { display: flex; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .modal.active { display: flex !important; }
         
-        /* Animasi halu agar tombol terlihat interaktif */
-        .btn-active:active { transform: scale(0.95); }
+        /* Memastikan area klik besar dan terlihat */
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+            cursor: pointer;
+            user-select: none;
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen pb-20">
 
-    <!-- Tombol Admin Darurat -->
-    <button id="topAdminBtn" class="w-full bg-slate-900 text-white text-[10px] py-2 text-center font-bold tracking-widest uppercase border-none outline-none cursor-pointer">
-        Akses Panel Admin (Klik di Sini)
-    </button>
+    <!-- Tombol Admin Layer 0 (Paling Atas & Statis) -->
+    <div id="btnAksesAdmin" class="bg-black text-white text-[10px] py-3 text-center font-black tracking-[0.2em] uppercase cursor-pointer sticky top-0 z-[60]" style="display: block !important;">
+        KLIK DISINI UNTUK LOGIN ADMIN
+    </div>
 
     <!-- Header -->
-    <header class="bg-white border-b border-pink-100 sticky top-0 z-[50] shadow-sm">
-        <div class="max-w-xl mx-auto px-5 h-16 flex items-center justify-between">
-            <h1 class="text-pink-600 font-bold text-lg flex items-center gap-2">
-                <span class="bg-pink-500 text-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm">D</span>
+    <header class="bg-white/90 backdrop-blur-md border-b border-pink-100 z-[50]">
+        <div class="max-w-xl mx-auto px-6 h-20 flex items-center justify-between">
+            <h1 class="text-pink-600 font-extrabold text-xl flex items-center gap-3">
+                <span class="bg-pink-500 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-200">D</span>
                 Daily Inspiring
             </h1>
-            <div id="adminBadge" class="hidden bg-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-bold animate-pulse">ADMIN AKTIF</div>
+            <div id="badgeAdmin" class="hidden bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Mode Edit</div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-xl mx-auto px-5 py-6 pb-32">
-        <!-- Search -->
-        <div class="mb-6">
-            <input type="text" id="searchInput"
-                class="w-full bg-white border border-pink-100 rounded-2xl py-4 px-5 text-sm outline-none focus:ring-2 focus:ring-pink-400 shadow-sm" 
-                placeholder="Cari barang impianmu...">
+    <!-- Content -->
+    <main class="max-w-xl mx-auto px-6 mt-8">
+        <!-- Search Box -->
+        <div class="relative mb-8">
+            <input type="text" id="inputCari" 
+                class="w-full bg-white border-2 border-pink-50 rounded-[2rem] py-5 px-8 text-sm outline-none focus:border-pink-400 shadow-xl shadow-pink-100/50 transition-all"
+                placeholder="Cari racun shopee hari ini...">
         </div>
 
-        <!-- Filter Kategori -->
-        <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-8 py-1">
-            <button id="cat-Semua" class="cat-btn px-5 py-2.5 rounded-xl text-xs font-bold bg-pink-500 text-white whitespace-nowrap shadow-md">Semua</button>
+        <!-- Filter -->
+        <div id="tabKategori" class="flex gap-3 overflow-x-auto no-scrollbar pb-6">
+            <button class="filter-btn px-6 py-3 rounded-2xl text-xs font-bold bg-pink-500 text-white shadow-lg shadow-pink-200" data-cat="Semua">Semua</button>
         </div>
 
-        <!-- List Produk -->
-        <div id="productList" class="grid grid-cols-1 gap-4">
-            <div class="text-center py-10 text-pink-300 animate-pulse">Memuat data dari cloud...</div>
+        <!-- Grid -->
+        <div id="wadahProduk" class="grid grid-cols-1 gap-5">
+            <div class="text-center py-20 text-pink-300 font-bold animate-pulse">Menghubungkan ke Database...</div>
         </div>
     </main>
 
-    <!-- Admin Actions -->
-    <div id="adminActions" class="hidden fixed bottom-6 right-6 flex flex-col gap-3 items-end z-[100]">
-        <button id="openAddBtn" class="bg-pink-600 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-2 font-bold btn-active">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
-            TAMBAH PRODUK
+    <!-- FAB Tambah -->
+    <div id="panelAdmin" class="hidden fixed bottom-8 right-6 z-[100] flex flex-col items-end gap-4">
+        <button id="btnTambahProduk" class="bg-pink-600 text-white p-5 rounded-[2rem] shadow-2xl flex items-center gap-3 font-black active:scale-90 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            TAMBAH
         </button>
-        <button id="logoutBtn" class="bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg shadow-xl font-bold btn-active">LOGOUT</button>
+        <button id="btnKeluar" class="bg-gray-800 text-white text-[9px] px-4 py-2 rounded-xl font-bold uppercase">Logout</button>
     </div>
 
     <!-- Modal Login -->
-    <div id="loginModal" class="modal">
-        <div class="bg-white w-full max-w-[320px] rounded-[2rem] p-8 shadow-2xl mx-4 text-center">
-            <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            </div>
-            <h3 class="font-bold text-slate-800 text-lg mb-2">Password Admin</h3>
-            <p class="text-slate-400 text-xs mb-6">Gunakan password khusus untuk mode edit</p>
-            <input type="password" id="passInput" class="w-full bg-slate-100 p-4 rounded-2xl border-none text-center mb-4 font-bold outline-none focus:ring-2 focus:ring-pink-300" placeholder="••••••">
-            <button id="submitLogin" class="w-full bg-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg btn-active">BUKA AKSES</button>
-            <button id="cancelLogin" class="w-full text-slate-400 text-[10px] mt-4 font-bold uppercase tracking-widest">BATAL</button>
+    <div id="modalLogin" class="modal">
+        <div class="bg-white w-[85%] max-w-[350px] rounded-[3rem] p-10 shadow-2xl">
+            <h3 class="font-black text-2xl text-center mb-2">Admin Only</h3>
+            <p class="text-gray-400 text-center text-xs mb-8">Masukkan password rahasia</p>
+            <input type="password" id="inputPass" class="w-full bg-gray-100 p-5 rounded-2xl text-center font-bold text-xl mb-6 outline-none focus:ring-2 focus:ring-pink-400" placeholder="••••">
+            <button id="btnSubmitLogin" class="w-full bg-pink-500 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-transform">VERIFIKASI</button>
+            <button id="btnBatalLogin" class="w-full text-gray-400 font-bold text-[10px] mt-6 uppercase tracking-widest">Tutup</button>
         </div>
     </div>
 
-    <!-- Modal Add Product -->
-    <div id="addModal" class="modal">
-        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 mx-0 sm:mx-4 self-end sm:self-center max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-800 mb-6">Input Produk Baru</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Produk</label>
-                    <input type="text" id="p_title" class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 outline-none focus:border-pink-300" placeholder="Misal: Tas Korea Estetik">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
-                    <input type="text" id="p_cat" class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 outline-none" placeholder="Fashion / Beauty / Rumah">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">URL Gambar</label>
-                    <input type="text" id="p_image" class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 outline-none" placeholder="https://link-foto.com/gambar.jpg">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Link Shopee</label>
-                    <input type="text" id="p_link" class="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 outline-none" placeholder="https://shope.ee/...">
-                </div>
-                <button id="saveBtn" class="w-full bg-pink-600 text-white font-bold py-5 rounded-2xl shadow-xl btn-active mt-4">SIMPAN KE CLOUD</button>
-                <button id="closeAddBtn" class="w-full text-slate-400 font-bold text-xs uppercase py-2">TUTUP</button>
+    <!-- Modal Form -->
+    <div id="modalForm" class="modal">
+        <div class="bg-white w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-8 sm:m-4 self-end sm:self-center overflow-y-auto max-h-[90vh]">
+            <h3 class="font-black text-2xl mb-8">Tambah Produk</h3>
+            <div class="space-y-5">
+                <input type="text" id="f_judul" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Nama Produk">
+                <input type="text" id="f_kategori" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Kategori (Fashion/Beauty)">
+                <input type="text" id="f_gambar" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Link Gambar (https://...)">
+                <input type="text" id="f_shopee" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Link Shopee (https://shope.ee/...)">
+                <button id="btnSimpanCloud" class="w-full bg-pink-600 text-white font-black py-5 rounded-2xl shadow-2xl mt-4">POSTING KE CLOUD</button>
+                <button id="btnTutupForm" class="w-full text-gray-400 font-bold text-xs uppercase py-2">Batal</button>
             </div>
         </div>
     </div>
@@ -122,155 +110,148 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 1. Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
+        // CONFIG & INIT
+        const config = JSON.parse(__firebase_config);
+        const app = initializeApp(config);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'daily-inspiring';
-        
-        let allItems = [];
-        let currentCategory = 'Semua';
-        let isAdmin = false;
+        const ID_APP = typeof __app_id !== 'undefined' ? __app_id : 'daily-inspiring-prod';
 
-        // 2. Elements
-        const listEl = document.getElementById('productList');
-        const searchInput = document.getElementById('searchInput');
-        const loginModal = document.getElementById('loginModal');
-        const addModal = document.getElementById('addModal');
-        const passInput = document.getElementById('passInput');
-        const adminBadge = document.getElementById('adminBadge');
-        const adminActions = document.getElementById('adminActions');
+        let dataLengkap = [];
+        let filterSekarang = 'Semua';
+        let statusAdmin = false;
 
-        // 3. Functions
-        const toggleAdminUI = (status) => {
-            isAdmin = status;
-            adminBadge.classList.toggle('hidden', !status);
-            adminActions.classList.toggle('hidden', !status);
-            renderItems();
+        // UI ELEMENTS
+        const dom = {
+            list: document.getElementById('wadahProduk'),
+            cari: document.getElementById('inputCari'),
+            modalLogin: document.getElementById('modalLogin'),
+            modalForm: document.getElementById('modalForm'),
+            tabs: document.getElementById('tabKategori'),
+            panelAdmin: document.getElementById('panelAdmin'),
+            badge: document.getElementById('badgeAdmin')
         };
 
-        const renderItems = () => {
-            const search = searchInput.value.toLowerCase();
-            const filtered = allItems.filter(i => {
-                const matchesSearch = i.title.toLowerCase().includes(search);
-                const matchesCat = currentCategory === 'Semua' || i.category === currentCategory;
-                return matchesSearch && matchesCat;
+        // RENDER LOGIC
+        const perbaruiTampilan = () => {
+            const keyword = dom.cari.value.toLowerCase();
+            const hasil = dataLengkap.filter(i => {
+                const cocokCari = i.title.toLowerCase().includes(keyword);
+                const cocokKat = filterSekarang === 'Semua' || i.category === filterSekarang;
+                return cocokCari && cocokKat;
             });
 
-            if (filtered.length === 0) {
-                listEl.innerHTML = `<div class="text-center py-20 text-slate-300">Produk tidak ditemukan atau belum ada data.</div>`;
+            if(hasil.length === 0) {
+                dom.list.innerHTML = `<div class="text-center py-20 text-gray-400">Belum ada barang di kategori ini.</div>`;
                 return;
             }
 
-            listEl.innerHTML = filtered.map(item => `
-                <div class="bg-white rounded-3xl p-4 border border-pink-50 shadow-sm flex items-center gap-4 relative animate-in fade-in duration-300">
-                    <div class="w-24 h-24 bg-pink-50 rounded-2xl overflow-hidden flex-shrink-0">
-                        <img src="${item.image}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Produk'">
+            dom.list.innerHTML = hasil.map(item => `
+                <div class="bg-white rounded-[2.5rem] p-5 shadow-sm border border-pink-50 flex items-center gap-5 relative overflow-hidden">
+                    <div class="w-24 h-24 bg-pink-50 rounded-3xl overflow-hidden flex-shrink-0">
+                        <img src="${item.image}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200?text=Produk'">
                     </div>
                     <div class="flex-grow">
-                        <p class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-1">${item.category || 'PRODUK'}</p>
-                        <h3 class="text-sm font-bold text-slate-800 line-clamp-2 leading-snug mb-3">${item.title}</h3>
-                        <a href="${item.link}" target="_blank" class="inline-block bg-pink-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-lg shadow-pink-100 btn-active">CEK PRODUK</a>
+                        <span class="text-[9px] font-black text-pink-400 uppercase tracking-widest">${item.category || 'PRODUK'}</span>
+                        <h3 class="font-bold text-slate-800 text-sm line-clamp-2 leading-tight mt-1 mb-4">${item.title}</h3>
+                        <a href="${item.link}" target="_blank" class="inline-block bg-pink-600 text-white px-6 py-2.5 rounded-2xl text-[11px] font-black shadow-lg shadow-pink-100 active:scale-90 transition-transform">LIHAT DI SHOPEE</a>
                     </div>
-                    ${isAdmin ? `<button class="del-btn absolute top-3 right-3 text-red-300 hover:text-red-500 font-bold p-2" data-id="${item.id}">×</button>` : ''}
+                    ${statusAdmin ? `<button class="btn-hapus absolute top-4 right-4 text-red-200 hover:text-red-500 font-bold" data-id="${item.id}">Hapus</button>` : ''}
                 </div>
             `).join('');
 
-            // Bind delete buttons
-            document.querySelectorAll('.del-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    const id = btn.getAttribute('data-id');
-                    if(confirm("Hapus dari cloud?")) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id));
+            // Bind delete
+            document.querySelectorAll('.btn-hapus').forEach(b => {
+                b.addEventListener('click', async () => {
+                    if(confirm("Hapus selamanya dari cloud?")) {
+                        await deleteDoc(doc(db, 'artifacts', ID_APP, 'public', 'data', 'products', b.dataset.id));
                     }
-                };
+                });
             });
         };
 
-        const renderCategories = () => {
-            const cats = ['Semua', ...new Set(allItems.map(i => i.category).filter(c => c))];
-            const container = document.getElementById('categoryTabs');
-            container.innerHTML = cats.map(c => `
-                <button class="cat-btn px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap border border-pink-100 transition-all 
-                    ${currentCategory === c ? 'bg-pink-500 text-white shadow-md' : 'bg-white text-pink-400'}" data-cat="${c}">
+        const perbaruiKategori = () => {
+            const daftarKat = ['Semua', ...new Set(dataLengkap.map(i => i.category).filter(c => c))];
+            dom.tabs.innerHTML = daftarKat.map(c => `
+                <button class="filter-btn px-6 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border-2
+                    ${filterSekarang === c ? 'bg-pink-500 text-white border-pink-500 shadow-lg shadow-pink-200' : 'bg-white text-pink-400 border-pink-50'}"
+                    data-cat="${c}">
                     ${c}
                 </button>
             `).join('');
 
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.onclick = () => {
-                    currentCategory = btn.getAttribute('data-cat');
-                    renderCategories();
-                    renderItems();
-                };
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.addEventListener('click', () => {
+                    filterSekarang = b.dataset.cat;
+                    perbaruiKategori();
+                    perbaruiTampilan();
+                });
             });
         };
 
-        // 4. Events
-        document.getElementById('topAdminBtn').onclick = () => loginModal.classList.add('active');
-        document.getElementById('cancelLogin').onclick = () => loginModal.classList.remove('active');
-        document.getElementById('openAddBtn').onclick = () => addModal.classList.add('active');
-        document.getElementById('closeAddBtn').onclick = () => addModal.classList.remove('active');
+        // ADMIN ACTIONS
+        const setAdminUI = (isOn) => {
+            statusAdmin = isOn;
+            dom.panelAdmin.classList.toggle('hidden', !isOn);
+            dom.badge.classList.toggle('hidden', !isOn);
+            perbaruiTampilan();
+        };
+
+        // EVENT LISTENERS (Hard-bound)
+        document.getElementById('btnAksesAdmin').addEventListener('click', () => dom.modalLogin.classList.add('active'));
+        document.getElementById('btnBatalLogin').addEventListener('click', () => dom.modalLogin.classList.remove('active'));
+        document.getElementById('btnTutupForm').addEventListener('click', () => dom.modalForm.classList.remove('active'));
+        document.getElementById('btnTambahProduk').addEventListener('click', () => dom.modalForm.classList.add('active'));
         
-        document.getElementById('submitLogin').onclick = () => {
-            if (passInput.value === 'pinkadmin') {
-                toggleAdminUI(true);
-                loginModal.classList.remove('active');
-                passInput.value = '';
-                try { localStorage.setItem('adm_session', 'true'); } catch(e) {}
-            } else {
-                alert("Password Salah!");
-            }
-        };
+        document.getElementById('btnSubmitLogin').addEventListener('click', () => {
+            if(document.getElementById('inputPass').value === 'pinkadmin') {
+                setAdminUI(true);
+                dom.modalLogin.classList.remove('active');
+                document.getElementById('inputPass').value = '';
+                sessionStorage.setItem('is_adm', 'yes');
+            } else { alert("Maaf, password salah."); }
+        });
 
-        document.getElementById('logoutBtn').onclick = () => {
-            toggleAdminUI(false);
-            try { localStorage.removeItem('adm_session'); } catch(e) {}
-        };
+        document.getElementById('btnKeluar').addEventListener('click', () => {
+            setAdminUI(false);
+            sessionStorage.removeItem('is_adm');
+        });
 
-        searchInput.oninput = () => renderItems();
+        document.getElementById('btnSimpanCloud').addEventListener('click', async () => {
+            const t = document.getElementById('f_judul').value;
+            const c = document.getElementById('f_kategori').value;
+            const i = document.getElementById('f_gambar').value;
+            const l = document.getElementById('f_shopee').value;
 
-        document.getElementById('saveBtn').onclick = async () => {
-            const title = document.getElementById('p_title').value;
-            const cat = document.getElementById('p_cat').value;
-            const image = document.getElementById('p_image').value;
-            const link = document.getElementById('p_link').value;
-
-            if (!title || !link) return alert("Minimal isi Nama dan Link!");
+            if(!t || !l) return alert("Judul dan Link Shopee harus ada!");
 
             try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-                await addDoc(colRef, { title, category: cat, image, link, createdAt: Date.now() });
-                addModal.classList.remove('active');
-                // Reset
-                document.getElementById('p_title').value = '';
-                document.getElementById('p_cat').value = '';
-                document.getElementById('p_image').value = '';
-                document.getElementById('p_link').value = '';
-            } catch (e) { alert("Error saving!"); }
-        };
+                const ref = collection(db, 'artifacts', ID_APP, 'public', 'data', 'products');
+                await addDoc(ref, { title: t, category: c, image: i, link: l, createdAt: Date.now() });
+                dom.modalForm.classList.remove('active');
+                document.getElementById('f_judul').value = '';
+                document.getElementById('f_shopee').value = '';
+            } catch(e) { alert("Database Error!"); }
+        });
 
-        // 5. Init
-        const start = async () => {
+        dom.cari.addEventListener('input', perbaruiTampilan);
+
+        // INITIALIZE
+        const init = async () => {
             await signInAnonymously(auth);
-            
-            // Check session
-            try {
-                if(localStorage.getItem('adm_session') === 'true') toggleAdminUI(true);
-            } catch(e) {}
+            if(sessionStorage.getItem('is_adm') === 'yes') setAdminUI(true);
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
-                allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                allItems.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-                renderItems();
-                renderCategories();
+            onSnapshot(collection(db, 'artifacts', ID_APP, 'public', 'data', 'products'), (snap) => {
+                dataLengkap = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                dataLengkap.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+                perbaruiTampilan();
+                perbaruiKategori();
             });
         };
 
-        start();
+        init();
     </script>
 </body>
 </html>
