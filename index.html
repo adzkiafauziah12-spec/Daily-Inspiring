@@ -4,105 +4,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Daily Inspiring - Cloud Katalog</title>
-    <!-- Menggunakan versi Tailwind Standalone untuk stabilitas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #fff5f7;
-            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
+        /* Modal Fix: Pastikan tidak ada yang menghalangi klik */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 99999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100000;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(10px);
         }
         .modal.active { display: flex !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Memastikan area klik besar dan terlihat */
-        .touch-target {
-            min-height: 44px;
-            min-width: 44px;
+        /* Tombol Admin Khusus agar selalu bisa diklik */
+        #btnTriggerAdmin {
+            all: unset;
+            display: block;
+            width: 100%;
+            background: #000;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            text-align: center;
+            padding: 12px 0;
             cursor: pointer;
-            user-select: none;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1000;
         }
     </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="min-h-screen pb-24">
 
-    <!-- Tombol Admin Layer 0 (Paling Atas & Statis) -->
-    <div id="btnAksesAdmin" class="bg-black text-white text-[10px] py-3 text-center font-black tracking-[0.2em] uppercase cursor-pointer sticky top-0 z-[60]" style="display: block !important;">
+    <!-- Tombol Paling Luar (Layer 0) -->
+    <button id="btnTriggerAdmin" type="button">
         KLIK DISINI UNTUK LOGIN ADMIN
-    </div>
+    </button>
 
-    <!-- Header -->
-    <header class="bg-white/90 backdrop-blur-md border-b border-pink-100 z-[50]">
-        <div class="max-w-xl mx-auto px-6 h-20 flex items-center justify-between">
-            <h1 class="text-pink-600 font-extrabold text-xl flex items-center gap-3">
-                <span class="bg-pink-500 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-200">D</span>
+    <header class="bg-white border-b border-pink-100 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-xl mx-auto px-6 h-16 flex items-center justify-between">
+            <h1 class="text-pink-600 font-bold text-lg flex items-center gap-2">
+                <span class="bg-pink-500 text-white w-8 h-8 rounded-lg flex items-center justify-center">D</span>
                 Daily Inspiring
             </h1>
-            <div id="badgeAdmin" class="hidden bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Mode Edit</div>
+            <div id="adminStatus" class="hidden bg-pink-600 text-white px-3 py-1 rounded-full text-[9px] font-black animate-pulse">ADMIN MODE</div>
         </div>
     </header>
 
-    <!-- Content -->
-    <main class="max-w-xl mx-auto px-6 mt-8">
-        <!-- Search Box -->
-        <div class="relative mb-8">
-            <input type="text" id="inputCari" 
-                class="w-full bg-white border-2 border-pink-50 rounded-[2rem] py-5 px-8 text-sm outline-none focus:border-pink-400 shadow-xl shadow-pink-100/50 transition-all"
-                placeholder="Cari racun shopee hari ini...">
+    <main class="max-w-xl mx-auto px-6 pt-6">
+        <div class="mb-6">
+            <input type="text" id="searchBar" class="w-full bg-white border border-pink-100 rounded-2xl py-4 px-6 text-sm outline-none focus:ring-2 focus:ring-pink-400 shadow-sm" placeholder="Cari barang impian...">
         </div>
 
-        <!-- Filter -->
-        <div id="tabKategori" class="flex gap-3 overflow-x-auto no-scrollbar pb-6">
-            <button class="filter-btn px-6 py-3 rounded-2xl text-xs font-bold bg-pink-500 text-white shadow-lg shadow-pink-200" data-cat="Semua">Semua</button>
+        <div id="catContainer" class="flex gap-2 overflow-x-auto no-scrollbar mb-6">
+            <!-- Kategori akan muncul di sini -->
         </div>
 
-        <!-- Grid -->
-        <div id="wadahProduk" class="grid grid-cols-1 gap-5">
-            <div class="text-center py-20 text-pink-300 font-bold animate-pulse">Menghubungkan ke Database...</div>
+        <div id="productGrid" class="grid gap-4">
+            <div class="text-center py-20 text-pink-300">Memulai koneksi...</div>
         </div>
     </main>
 
-    <!-- FAB Tambah -->
-    <div id="panelAdmin" class="hidden fixed bottom-8 right-6 z-[100] flex flex-col items-end gap-4">
-        <button id="btnTambahProduk" class="bg-pink-600 text-white p-5 rounded-[2rem] shadow-2xl flex items-center gap-3 font-black active:scale-90 transition-transform">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            TAMBAH
+    <!-- Tombol Admin Action -->
+    <div id="adminPanel" class="hidden fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end">
+        <button id="openFormBtn" class="bg-pink-600 text-white p-5 rounded-3xl shadow-2xl font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"><path d="M10 4v12M4 10h12"/></svg>
+            TAMBAH PRODUK
         </button>
-        <button id="btnKeluar" class="bg-gray-800 text-white text-[9px] px-4 py-2 rounded-xl font-bold uppercase">Logout</button>
+        <button id="logoutBtn" class="bg-slate-800 text-white text-[9px] px-3 py-1 rounded-lg">LOGOUT</button>
     </div>
 
-    <!-- Modal Login -->
-    <div id="modalLogin" class="modal">
-        <div class="bg-white w-[85%] max-w-[350px] rounded-[3rem] p-10 shadow-2xl">
-            <h3 class="font-black text-2xl text-center mb-2">Admin Only</h3>
-            <p class="text-gray-400 text-center text-xs mb-8">Masukkan password rahasia</p>
-            <input type="password" id="inputPass" class="w-full bg-gray-100 p-5 rounded-2xl text-center font-bold text-xl mb-6 outline-none focus:ring-2 focus:ring-pink-400" placeholder="••••">
-            <button id="btnSubmitLogin" class="w-full bg-pink-500 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-transform">VERIFIKASI</button>
-            <button id="btnBatalLogin" class="w-full text-gray-400 font-bold text-[10px] mt-6 uppercase tracking-widest">Tutup</button>
+    <!-- MODAL LOGIN -->
+    <div id="loginOverlay" class="modal">
+        <div class="bg-white w-[90%] max-w-[320px] rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 class="font-black text-xl text-center mb-6">Admin Verification</h3>
+            <input type="password" id="passCode" class="w-full bg-slate-100 p-4 rounded-2xl text-center mb-4 outline-none focus:ring-2 focus:ring-pink-400" placeholder="Password">
+            <button id="doLogin" class="w-full bg-pink-500 text-white font-bold py-4 rounded-2xl mb-2">MASUK</button>
+            <button id="closeLogin" class="w-full text-slate-400 text-[10px] font-bold py-2">BATAL</button>
         </div>
     </div>
 
-    <!-- Modal Form -->
-    <div id="modalForm" class="modal">
-        <div class="bg-white w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-8 sm:m-4 self-end sm:self-center overflow-y-auto max-h-[90vh]">
-            <h3 class="font-black text-2xl mb-8">Tambah Produk</h3>
-            <div class="space-y-5">
-                <input type="text" id="f_judul" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Nama Produk">
-                <input type="text" id="f_kategori" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Kategori (Fashion/Beauty)">
-                <input type="text" id="f_gambar" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Link Gambar (https://...)">
-                <input type="text" id="f_shopee" class="w-full bg-gray-50 p-5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-pink-300" placeholder="Link Shopee (https://shope.ee/...)">
-                <button id="btnSimpanCloud" class="w-full bg-pink-600 text-white font-black py-5 rounded-2xl shadow-2xl mt-4">POSTING KE CLOUD</button>
-                <button id="btnTutupForm" class="w-full text-gray-400 font-bold text-xs uppercase py-2">Batal</button>
+    <!-- MODAL FORM -->
+    <div id="formOverlay" class="modal">
+        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-8 self-end max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-xl mb-6">Tambah Produk Baru</h3>
+            <div class="space-y-4">
+                <input type="text" id="in_title" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 outline-none" placeholder="Nama Produk">
+                <input type="text" id="in_cat" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 outline-none" placeholder="Kategori (Misal: Beauty)">
+                <input type="text" id="in_img" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 outline-none" placeholder="URL Gambar">
+                <input type="text" id="in_link" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 outline-none" placeholder="Link Shopee">
+                <button id="doSave" class="w-full bg-pink-600 text-white font-bold py-4 rounded-xl shadow-lg">SIMPAN</button>
+                <button id="closeForm" class="w-full text-slate-400 font-bold py-2">TUTUP</button>
             </div>
         </div>
     </div>
@@ -112,146 +113,128 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // CONFIG & INIT
-        const config = JSON.parse(__firebase_config);
-        const app = initializeApp(config);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const ID_APP = typeof __app_id !== 'undefined' ? __app_id : 'daily-inspiring-prod';
+        // Global State
+        let db, auth;
+        let products = [];
+        let activeCat = 'Semua';
+        let isAdmin = false;
 
-        let dataLengkap = [];
-        let filterSekarang = 'Semua';
-        let statusAdmin = false;
+        // Ambil ID App
+        const app_id = typeof __app_id !== 'undefined' ? __app_id : 'daily-insp-final';
 
-        // UI ELEMENTS
-        const dom = {
-            list: document.getElementById('wadahProduk'),
-            cari: document.getElementById('inputCari'),
-            modalLogin: document.getElementById('modalLogin'),
-            modalForm: document.getElementById('modalForm'),
-            tabs: document.getElementById('tabKategori'),
-            panelAdmin: document.getElementById('panelAdmin'),
-            badge: document.getElementById('badgeAdmin')
-        };
-
-        // RENDER LOGIC
-        const perbaruiTampilan = () => {
-            const keyword = dom.cari.value.toLowerCase();
-            const hasil = dataLengkap.filter(i => {
-                const cocokCari = i.title.toLowerCase().includes(keyword);
-                const cocokKat = filterSekarang === 'Semua' || i.category === filterSekarang;
-                return cocokCari && cocokKat;
+        // Fungsi Render
+        const render = () => {
+            const query = document.getElementById('searchBar').value.toLowerCase();
+            const filtered = products.filter(p => {
+                const mSearch = p.title.toLowerCase().includes(query);
+                const mCat = activeCat === 'Semua' || p.category === activeCat;
+                return mSearch && mCat;
             });
 
-            if(hasil.length === 0) {
-                dom.list.innerHTML = `<div class="text-center py-20 text-gray-400">Belum ada barang di kategori ini.</div>`;
+            const grid = document.getElementById('productGrid');
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="text-center py-20 text-slate-300">Produk tidak ditemukan.</div>`;
                 return;
             }
 
-            dom.list.innerHTML = hasil.map(item => `
-                <div class="bg-white rounded-[2.5rem] p-5 shadow-sm border border-pink-50 flex items-center gap-5 relative overflow-hidden">
-                    <div class="w-24 h-24 bg-pink-50 rounded-3xl overflow-hidden flex-shrink-0">
-                        <img src="${item.image}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200?text=Produk'">
-                    </div>
+            grid.innerHTML = filtered.map(p => `
+                <div class="bg-white rounded-3xl p-4 shadow-sm border border-pink-50 flex gap-4 relative">
+                    <img src="${p.image}" class="w-20 h-20 rounded-2xl object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/100'">
                     <div class="flex-grow">
-                        <span class="text-[9px] font-black text-pink-400 uppercase tracking-widest">${item.category || 'PRODUK'}</span>
-                        <h3 class="font-bold text-slate-800 text-sm line-clamp-2 leading-tight mt-1 mb-4">${item.title}</h3>
-                        <a href="${item.link}" target="_blank" class="inline-block bg-pink-600 text-white px-6 py-2.5 rounded-2xl text-[11px] font-black shadow-lg shadow-pink-100 active:scale-90 transition-transform">LIHAT DI SHOPEE</a>
+                        <p class="text-[8px] font-bold text-pink-400 uppercase tracking-widest">${p.category || 'PRODUK'}</p>
+                        <h3 class="text-sm font-bold text-slate-800 line-clamp-2 leading-tight mb-2">${p.title}</h3>
+                        <a href="${p.link}" target="_blank" class="inline-block bg-pink-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold">BELI</a>
                     </div>
-                    ${statusAdmin ? `<button class="btn-hapus absolute top-4 right-4 text-red-200 hover:text-red-500 font-bold" data-id="${item.id}">Hapus</button>` : ''}
+                    ${isAdmin ? `<button class="del-btn absolute top-2 right-2 text-red-300 px-2" data-id="${p.id}">×</button>` : ''}
                 </div>
             `).join('');
 
-            // Bind delete
-            document.querySelectorAll('.btn-hapus').forEach(b => {
-                b.addEventListener('click', async () => {
-                    if(confirm("Hapus selamanya dari cloud?")) {
-                        await deleteDoc(doc(db, 'artifacts', ID_APP, 'public', 'data', 'products', b.dataset.id));
-                    }
-                });
+            document.querySelectorAll('.del-btn').forEach(b => {
+                b.onclick = async () => {
+                    if(confirm("Hapus?")) await deleteDoc(doc(db, 'artifacts', app_id, 'public', 'data', 'products', b.dataset.id));
+                };
             });
         };
 
-        const perbaruiKategori = () => {
-            const daftarKat = ['Semua', ...new Set(dataLengkap.map(i => i.category).filter(c => c))];
-            dom.tabs.innerHTML = daftarKat.map(c => `
-                <button class="filter-btn px-6 py-3 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border-2
-                    ${filterSekarang === c ? 'bg-pink-500 text-white border-pink-500 shadow-lg shadow-pink-200' : 'bg-white text-pink-400 border-pink-50'}"
-                    data-cat="${c}">
-                    ${c}
-                </button>
+        const renderCats = () => {
+            const cats = ['Semua', ...new Set(products.map(p => p.category).filter(c => c))];
+            const container = document.getElementById('catContainer');
+            container.innerHTML = cats.map(c => `
+                <button class="cat-item px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border ${activeCat === c ? 'bg-pink-500 text-white' : 'bg-white text-pink-400'}" data-cat="${c}">${c}</button>
             `).join('');
-
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.addEventListener('click', () => {
-                    filterSekarang = b.dataset.cat;
-                    perbaruiKategori();
-                    perbaruiTampilan();
-                });
+            document.querySelectorAll('.cat-item').forEach(b => {
+                b.onclick = () => { activeCat = b.dataset.cat; renderCats(); render(); };
             });
         };
 
-        // ADMIN ACTIONS
-        const setAdminUI = (isOn) => {
-            statusAdmin = isOn;
-            dom.panelAdmin.classList.toggle('hidden', !isOn);
-            dom.badge.classList.toggle('hidden', !isOn);
-            perbaruiTampilan();
+        // Event Handling (Native Binding)
+        const initEvents = () => {
+            document.getElementById('btnTriggerAdmin').onclick = () => document.getElementById('loginOverlay').classList.add('active');
+            document.getElementById('closeLogin').onclick = () => document.getElementById('loginOverlay').classList.remove('active');
+            document.getElementById('openFormBtn').onclick = () => document.getElementById('formOverlay').classList.add('active');
+            document.getElementById('closeForm').onclick = () => document.getElementById('formOverlay').classList.remove('active');
+            
+            document.getElementById('doLogin').onclick = () => {
+                if(document.getElementById('passCode').value === 'pinkadmin') {
+                    isAdmin = true;
+                    document.getElementById('adminStatus').classList.remove('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('loginOverlay').classList.remove('active');
+                    render();
+                } else { alert("Salah!"); }
+            };
+
+            document.getElementById('logoutBtn').onclick = () => {
+                isAdmin = false;
+                document.getElementById('adminStatus').classList.add('hidden');
+                document.getElementById('adminPanel').classList.add('hidden');
+                render();
+            };
+
+            document.getElementById('searchBar').oninput = () => render();
+
+            document.getElementById('doSave').onclick = async () => {
+                const data = {
+                    title: document.getElementById('in_title').value,
+                    category: document.getElementById('in_cat').value,
+                    image: document.getElementById('in_img').value,
+                    link: document.getElementById('in_link').value,
+                    createdAt: Date.now()
+                };
+                if(!data.title || !data.link) return alert("Isi data!");
+                await addDoc(collection(db, 'artifacts', app_id, 'public', 'data', 'products'), data);
+                document.getElementById('formOverlay').classList.remove('active');
+            };
         };
 
-        // EVENT LISTENERS (Hard-bound)
-        document.getElementById('btnAksesAdmin').addEventListener('click', () => dom.modalLogin.classList.add('active'));
-        document.getElementById('btnBatalLogin').addEventListener('click', () => dom.modalLogin.classList.remove('active'));
-        document.getElementById('btnTutupForm').addEventListener('click', () => dom.modalForm.classList.remove('active'));
-        document.getElementById('btnTambahProduk').addEventListener('click', () => dom.modalForm.classList.add('active'));
-        
-        document.getElementById('btnSubmitLogin').addEventListener('click', () => {
-            if(document.getElementById('inputPass').value === 'pinkadmin') {
-                setAdminUI(true);
-                dom.modalLogin.classList.remove('active');
-                document.getElementById('inputPass').value = '';
-                sessionStorage.setItem('is_adm', 'yes');
-            } else { alert("Maaf, password salah."); }
-        });
-
-        document.getElementById('btnKeluar').addEventListener('click', () => {
-            setAdminUI(false);
-            sessionStorage.removeItem('is_adm');
-        });
-
-        document.getElementById('btnSimpanCloud').addEventListener('click', async () => {
-            const t = document.getElementById('f_judul').value;
-            const c = document.getElementById('f_kategori').value;
-            const i = document.getElementById('f_gambar').value;
-            const l = document.getElementById('f_shopee').value;
-
-            if(!t || !l) return alert("Judul dan Link Shopee harus ada!");
-
+        // Main App Start
+        const start = async () => {
+            initEvents();
+            
             try {
-                const ref = collection(db, 'artifacts', ID_APP, 'public', 'data', 'products');
-                await addDoc(ref, { title: t, category: c, image: i, link: l, createdAt: Date.now() });
-                dom.modalForm.classList.remove('active');
-                document.getElementById('f_judul').value = '';
-                document.getElementById('f_shopee').value = '';
-            } catch(e) { alert("Database Error!"); }
-        });
+                const config = JSON.parse(__firebase_config);
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-        dom.cari.addEventListener('input', perbaruiTampilan);
+                await signInAnonymously(auth);
 
-        // INITIALIZE
-        const init = async () => {
-            await signInAnonymously(auth);
-            if(sessionStorage.getItem('is_adm') === 'yes') setAdminUI(true);
+                onSnapshot(collection(db, 'artifacts', app_id, 'public', 'data', 'products'), (snap) => {
+                    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    products.sort((a,b) => b.createdAt - a.createdAt);
+                    render();
+                    renderCats();
+                }, (err) => {
+                    document.getElementById('productGrid').innerHTML = `<div class="text-center p-10 text-red-400">Database error: Silakan Refresh.</div>`;
+                });
 
-            onSnapshot(collection(db, 'artifacts', ID_APP, 'public', 'data', 'products'), (snap) => {
-                dataLengkap = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                dataLengkap.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-                perbaruiTampilan();
-                perbaruiKategori();
-            });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('productGrid').innerHTML = `<div class="text-center p-10">Konfigurasi database tidak ditemukan. Hubungi developer.</div>`;
+            }
         };
 
-        init();
+        window.onload = start;
     </script>
 </body>
 </html>
