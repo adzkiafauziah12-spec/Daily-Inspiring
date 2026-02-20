@@ -16,8 +16,8 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 99999;
+            background: rgba(0,0,0,0.85);
+            z-index: 999999; /* Sangat tinggi agar di atas semua elemen */
             justify-content: center;
             align-items: center;
             padding: 20px;
@@ -25,21 +25,28 @@
         .modal.active { display: flex !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .btn-hover:active { transform: scale(0.95); }
+        /* Memastikan area klik bersih */
+        header { pointer-events: auto; }
+        #loginBtn { cursor: pointer; position: relative; z-index: 110; }
+        
+        .btn-active:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="min-h-screen pb-24">
 
     <!-- Header -->
-    <header class="bg-white/90 backdrop-blur-md border-b border-pink-100 sticky top-0 z-[100]">
+    <header class="bg-white/95 backdrop-blur-md border-b border-pink-100 sticky top-0 z-[100] shadow-sm">
         <div class="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
             <h1 class="text-pink-600 font-bold text-lg flex items-center gap-2">
                 <div class="bg-pink-500 text-white w-8 h-8 rounded-lg flex items-center justify-center shadow-lg">D</div>
                 Daily Inspiring
             </h1>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 <div id="statusBadge" class="hidden bg-green-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">Admin</div>
-                <button id="loginBtn" class="text-[10px] font-bold text-pink-400 uppercase tracking-widest py-2">Login</button>
+                <!-- Tombol Login dengan ID unik -->
+                <button id="loginBtn" class="bg-pink-50 text-pink-500 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-pink-100 transition-all border border-pink-100">
+                    Login
+                </button>
             </div>
         </div>
     </header>
@@ -47,8 +54,8 @@
     <!-- Konten Utama -->
     <main class="max-w-2xl mx-auto px-6 pt-8">
         <div class="mb-8">
-            <h2 class="text-2xl font-black text-slate-800 mb-2">Rekomendasi Hari Ini ✨</h2>
-            <p class="text-slate-500 text-sm">Cek barang-barang lucu yang sudah aku spill di sini!</p>
+            <h2 class="text-2xl font-black text-slate-800 mb-1">Rekomendasi ✨</h2>
+            <p id="loadingText" class="text-pink-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">Menghubungkan ke Database...</p>
         </div>
 
         <!-- Pencarian -->
@@ -57,46 +64,45 @@
         </div>
 
         <!-- Filter Kategori -->
-        <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-8">
-            <!-- Dinamis -->
-        </div>
+        <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-8"></div>
 
         <!-- Grid Produk -->
         <div id="mainGrid" class="grid gap-4">
-            <div class="text-center py-20 text-pink-300 animate-pulse font-bold text-sm">Menghubungkan ke Cloud Database...</div>
+            <div class="text-center py-10 text-slate-300">Memuat data...</div>
         </div>
     </main>
 
-    <!-- Admin Panel (Hanya Muncul Jika Login) -->
-    <div id="adminPanel" class="hidden fixed bottom-6 right-6 z-[101] flex flex-col items-end gap-3">
-        <button id="addBtn" class="bg-pink-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold btn-hover transition-all">
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
+        <button id="addBtn" class="bg-pink-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold btn-active">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            TAMBAH PRODUK
+            TAMBAH
         </button>
-        <button id="logoutBtn" class="bg-slate-800 text-white text-[10px] px-4 py-2 rounded-xl font-bold uppercase shadow-lg btn-hover">Logout</button>
+        <button id="logoutBtn" class="bg-slate-800 text-white text-[10px] px-4 py-2 rounded-xl font-bold uppercase shadow-lg">Logout</button>
     </div>
 
     <!-- Modal Login -->
     <div id="modalLogin" class="modal">
-        <div class="bg-white w-full max-w-[340px] rounded-[2.5rem] p-10 shadow-2xl text-center">
-            <h3 class="font-black text-xl mb-6">Masuk Admin</h3>
-            <input type="password" id="adminPass" class="w-full bg-slate-100 p-4 rounded-2xl text-center mb-6 outline-none focus:ring-2 focus:ring-pink-400 font-bold" placeholder="Password">
-            <button id="submitLogin" class="w-full bg-pink-500 text-white font-bold py-4 rounded-2xl shadow-xl btn-hover transition-all">VERIFIKASI</button>
-            <button id="closeLogin" class="mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest py-2">Batal</button>
+        <div class="bg-white w-full max-w-[320px] rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h3 class="font-black text-xl mb-2">Akses Admin</h3>
+            <p class="text-slate-400 text-[11px] mb-6">Masukkan kata sandi khusus</p>
+            <input type="password" id="adminPass" class="w-full bg-slate-100 p-4 rounded-2xl text-center mb-4 outline-none focus:ring-2 focus:ring-pink-400 font-bold" placeholder="Password">
+            <button id="submitLogin" class="w-full bg-pink-500 text-white font-bold py-4 rounded-2xl shadow-xl btn-active">MASUK</button>
+            <button id="closeLogin" class="mt-4 text-slate-400 text-[10px] font-bold uppercase py-2 w-full">Tutup</button>
         </div>
     </div>
 
-    <!-- Modal Form Tambah -->
+    <!-- Form Input -->
     <div id="modalForm" class="modal">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl self-end sm:self-center">
-            <h3 class="font-black text-xl mb-6">Tambah Katalog</h3>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 class="font-black text-xl mb-6">Produk Baru</h3>
             <div class="space-y-4">
-                <input type="text" id="f_title" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-transparent focus:border-pink-300" placeholder="Nama Barang">
-                <input type="text" id="f_cat" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-transparent focus:border-pink-300" placeholder="Kategori">
-                <input type="text" id="f_img" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-transparent focus:border-pink-300" placeholder="Link Gambar">
-                <input type="text" id="f_link" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-transparent focus:border-pink-300" placeholder="Link Shopee (https://...)">
-                <button id="saveCloud" class="w-full bg-pink-600 text-white font-black py-5 rounded-2xl shadow-xl mt-4 btn-hover transition-all">POSTING SEKARANG</button>
-                <button id="cancelForm" class="w-full text-slate-400 text-[10px] font-bold py-2 uppercase">Kembali</button>
+                <input type="text" id="f_title" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-pink-50" placeholder="Nama Barang">
+                <input type="text" id="f_cat" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-pink-50" placeholder="Kategori">
+                <input type="text" id="f_img" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-pink-50" placeholder="URL Gambar">
+                <input type="text" id="f_link" class="w-full bg-slate-50 p-4 rounded-xl outline-none border border-pink-50" placeholder="Link Shopee">
+                <button id="saveCloud" class="w-full bg-pink-600 text-white font-black py-4 rounded-2xl shadow-lg mt-4 btn-active">SIMPAN</button>
+                <button id="cancelForm" class="w-full text-slate-400 text-[10px] font-bold py-2 uppercase">Batal</button>
             </div>
         </div>
     </div>
@@ -104,167 +110,127 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 1. Firebase Core
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'daily_inspiring_v2';
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'daily_inspiring_v3';
 
-        // State Global
-        window.products = [];
-        window.activeCategory = 'Semua';
-        window.isAdmin = false;
+        let products = [];
+        let activeCat = 'Semua';
+        let adminMode = false;
 
-        // 2. Fungsi Render (View Only untuk Pengunjung)
-        const renderUI = () => {
+        const render = () => {
             const search = document.getElementById('searchField').value.toLowerCase();
-            const filtered = window.products.filter(p => {
+            const filtered = products.filter(p => {
                 const matchSearch = p.title?.toLowerCase().includes(search);
-                const matchCat = window.activeCategory === 'Semua' || p.category === window.activeCategory;
+                const matchCat = activeCat === 'Semua' || p.category === activeCat;
                 return matchSearch && matchCat;
             });
 
             const grid = document.getElementById('mainGrid');
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="text-center py-20 text-slate-300">Belum ada barang di sini.</div>`;
-                return;
-            }
-
             grid.innerHTML = filtered.map(p => `
-                <div class="bg-white rounded-[2rem] p-4 shadow-sm border border-pink-50 flex items-center gap-4 relative">
-                    <img src="${p.image || 'https://via.placeholder.com/150?text=Daily'}" class="w-20 h-20 rounded-2xl object-cover bg-pink-50" onerror="this.src='https://via.placeholder.com/150?text=Produk'">
-                    <div class="flex-grow pr-6">
-                        <span class="text-[8px] font-black text-pink-400 uppercase tracking-widest">${p.category || 'PRODUK'}</span>
-                        <h3 class="font-bold text-slate-800 text-sm line-clamp-2 leading-tight mt-1 mb-3">${p.title}</h3>
-                        <a href="${p.link}" target="_blank" class="inline-block bg-pink-500 text-white px-5 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-pink-100 active:scale-90 transition-all">BELI DI SHOPEE</a>
+                <div class="bg-white rounded-[1.5rem] p-4 shadow-sm border border-pink-50 flex items-center gap-4 relative">
+                    <img src="${p.image || 'https://via.placeholder.com/100'}" class="w-16 h-16 rounded-xl object-cover">
+                    <div class="flex-grow">
+                        <span class="text-[8px] font-black text-pink-400 uppercase">${p.category || 'Umum'}</span>
+                        <h3 class="font-bold text-slate-800 text-xs line-clamp-1">${p.title}</h3>
+                        <a href="${p.link}" target="_blank" class="mt-2 inline-block bg-pink-500 text-white px-4 py-1.5 rounded-lg text-[9px] font-bold">BELI</a>
                     </div>
-                    ${window.isAdmin ? `<button class="btn-delete absolute top-4 right-4 text-red-200 hover:text-red-500 font-bold p-2" data-id="${p.id}">×</button>` : ''}
+                    ${adminMode ? `<button class="btn-del text-red-200 absolute top-2 right-2 p-2" data-id="${p.id}">×</button>` : ''}
                 </div>
             `).join('');
 
-            // Tombol hapus hanya bekerja jika admin
-            document.querySelectorAll('.btn-delete').forEach(btn => {
-                btn.onclick = async () => {
-                    if (confirm("Hapus barang ini secara permanen dari Cloud?")) {
-                        try {
-                            await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'products', btn.dataset.id));
-                        } catch (e) { alert("Gagal menghapus: " + e.message); }
-                    }
+            document.querySelectorAll('.btn-del').forEach(b => {
+                b.onclick = async () => {
+                    if(confirm("Hapus permanen?")) await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'products', b.dataset.id));
                 };
             });
         };
 
-        const renderCategories = () => {
-            const cats = ['Semua', ...new Set(window.products.map(p => p.category).filter(c => c))];
+        const renderCats = () => {
+            const cats = ['Semua', ...new Set(products.map(p => p.category).filter(c => c))];
             const container = document.getElementById('categoryTabs');
             container.innerHTML = cats.map(c => `
-                <button class="cat-btn px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap border-2 transition-all
-                    ${window.activeCategory === c ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'bg-white text-pink-400 border-pink-50'}"
-                    data-cat="${c}">
-                    ${c}
-                </button>
+                <button class="px-4 py-2 rounded-full text-[10px] font-bold border-2 whitespace-nowrap
+                    ${activeCat === c ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-pink-300 border-pink-50'}"
+                    onclick="window.setCat('${c}')">${c}</button>
             `).join('');
-
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.onclick = () => {
-                    window.activeCategory = btn.dataset.cat;
-                    renderCategories();
-                    renderUI();
-                };
-            });
         };
 
-        // 3. Logika Login & Keamanan
-        const setAdminState = (status) => {
-            window.isAdmin = status;
-            document.getElementById('statusBadge').classList.toggle('hidden', !status);
-            document.getElementById('adminPanel').classList.toggle('hidden', !status);
-            document.getElementById('loginBtn').classList.toggle('hidden', status);
-            renderUI();
+        window.setCat = (c) => { activeCat = c; renderCats(); render(); };
+
+        const updateAdminUI = (val) => {
+            adminMode = val;
+            document.getElementById('statusBadge').classList.toggle('hidden', !val);
+            document.getElementById('adminPanel').classList.toggle('hidden', !val);
+            document.getElementById('loginBtn').classList.toggle('hidden', val);
+            render();
         };
 
-        // 4. Inisialisasi Event
-        document.getElementById('loginBtn').onclick = () => document.getElementById('modalLogin').classList.add('active');
+        // EVENT HANDLERS - Menggunakan addEventListener agar lebih aman
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            document.getElementById('modalLogin').classList.add('active');
+        });
+
         document.getElementById('closeLogin').onclick = () => document.getElementById('modalLogin').classList.remove('active');
         document.getElementById('addBtn').onclick = () => document.getElementById('modalForm').classList.add('active');
         document.getElementById('cancelForm').onclick = () => document.getElementById('modalForm').classList.remove('active');
 
         document.getElementById('submitLogin').onclick = () => {
-            const pass = document.getElementById('adminPass').value;
-            if (pass === 'pinkadmin') {
-                setAdminState(true);
+            if(document.getElementById('adminPass').value === 'pinkadmin') {
+                updateAdminUI(true);
                 document.getElementById('modalLogin').classList.remove('active');
-                localStorage.setItem('session_adm', 'active');
-                document.getElementById('adminPass').value = '';
+                localStorage.setItem('adm_session', 'true');
             } else {
-                alert("Password Salah!");
+                alert("Salah!");
             }
         };
 
         document.getElementById('logoutBtn').onclick = () => {
-            setAdminState(false);
-            localStorage.removeItem('session_adm');
+            updateAdminUI(false);
+            localStorage.removeItem('adm_session');
         };
 
         document.getElementById('saveCloud').onclick = async () => {
-            if (!window.isAdmin) return alert("Sesi berakhir, silakan login lagi.");
-
             const title = document.getElementById('f_title').value;
-            const category = document.getElementById('f_cat').value;
-            const image = document.getElementById('f_img').value;
             const link = document.getElementById('f_link').value;
+            if(!title || !link) return alert("Isi data!");
 
-            if (!title || !link) return alert("Nama barang dan Link wajib diisi!");
-
-            try {
-                const colRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'products');
-                await addDoc(colRef, {
-                    title, category, image, link,
-                    createdAt: serverTimestamp()
-                });
-                
-                document.getElementById('modalForm').classList.remove('active');
-                document.getElementById('f_title').value = '';
-                document.getElementById('f_link').value = '';
-                document.getElementById('f_img').value = '';
-                document.getElementById('f_cat').value = '';
-            } catch (err) {
-                alert("Gagal simpan ke Cloud: " + err.message);
-            }
+            await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'products'), {
+                title, link,
+                category: document.getElementById('f_cat').value || 'Umum',
+                image: document.getElementById('f_img').value,
+                createdAt: serverTimestamp()
+            });
+            document.getElementById('modalForm').classList.remove('active');
         };
 
-        document.getElementById('searchField').oninput = renderUI;
+        document.getElementById('searchField').oninput = render;
 
-        // 5. Jalankan Aplikasi
-        const startApp = async () => {
+        // INIT
+        const init = async () => {
             try {
-                // Auth Anonymously (Wajib agar Firestore bisa diakses)
                 await signInAnonymously(auth);
-                
-                // Pulihkan sesi admin jika ada
-                if (localStorage.getItem('session_adm') === 'active') {
-                    setAdminState(true);
-                }
+                document.getElementById('loadingText').innerText = "Database Terhubung ✅";
+                setTimeout(() => document.getElementById('loadingText').style.display = 'none', 2000);
 
-                // Listener Real-time
-                const colRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'products');
-                onSnapshot(colRef, (snap) => {
-                    window.products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    window.products.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                    renderUI();
-                    renderCategories();
+                if(localStorage.getItem('adm_session') === 'true') updateAdminUI(true);
+
+                onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'products'), (snap) => {
+                    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    products.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                    render();
+                    renderCats();
                 });
-
-            } catch (err) {
-                console.error("Gagal memulai aplikasi:", err);
+            } catch (e) {
+                document.getElementById('loadingText').innerText = "Koneksi Bermasalah ❌";
             }
         };
 
-        // Tunggu DOM siap
-        window.addEventListener('load', startApp);
+        window.onload = init;
     </script>
 </body>
 </html>
